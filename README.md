@@ -1,5 +1,16 @@
 # Todos Microservice 
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=alert_status)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=security_rating)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=coverage)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=duplicated_lines_density)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=code_smells)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=daniloJava_todo-spring-boot&metric=bugs)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=daniloJava_todo-spring-boot)](https://sonarcloud.io/dashboard?id=daniloJava_todo-spring-boot)
+
 Este projeto tem como objetivo demonstrar Crudo como microservices utilizando a [linguagem de programação Java](https://pt.wikipedia.org/wiki/Java_(linguagem_de_programa%C3%A7%C3%A3o)) em conjunto com o framework [Spring Boot](https://spring.io/projects/spring-boot), framework amplamente difundido no mercado de Tecnologia da Informação.
 
 Conteúdo
