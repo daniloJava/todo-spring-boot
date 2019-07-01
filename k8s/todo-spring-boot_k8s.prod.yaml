@@ -1,0 +1,224 @@
+## Exemplo de separar configmaps e secrets para outro repositório
+## - https://boxboat.com/2018/07/05/gitops-kubernetes-rolling-update-configmap-secret-change/
+## - https://pt.slideshare.net/apwashere/docker-new-york-city-from-gitops-to-a-scalable-cicd-pattern-for-kubernetes
+## - https://blog.argoproj.io/the-state-of-kubernetes-configuration-management-d8b06c1205
+## - https://www.reddit.com/r/kubernetes/comments/b4wigh/what_are_some_best_practices_for_organizing/
+## - https://ebook.konfigurasi.net/Container/Cloud-Native-Devops-with-Kubernetes-full-book.pdf
+
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: example
+  labels:
+    name: example
+
+## https://medium.com/google-cloud/kubernetes-configmaps-and-secrets-68d061f7ab5b
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: postgres
+  namespace: example
+type: Opaque
+data:
+  username: cGlvdHI=
+  password: MTIzNDU2
+
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: elasticsearch
+  namespace: example
+type: Opaque
+data:
+  username: cGlvdHI=
+  password: MTIzNDU2
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: postgres
+data:
+  database: postgres
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: todo-spring-boot
+  namespace: production
+data:
+  application.yml: |-
+    environment: local
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: *
+    endpoints:
+      default:
+        web:
+          enabled: true
+    ---
+    spring:
+      profiles: staging
+    environment: staging
+    ---
+    spring:
+      profiles: production
+    environment: production
+
+---
+#============================================================================================
+# DEPLOYMENT
+# Referência: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+#--------------------------------------------------------------------------------------------
+#
+# "kind"
+# Define o tipo do objeto configurado.
+#
+# "apiVersion"
+# Versão da API do Kubernetes usada para o objeto configurado.
+#
+# "spec.replicas"
+# Define a quantidade de Pods (instâncias) que se deseja executar.
+#
+# "spec.strategy.type"
+# Define a estratégia de implantação quando passar a versão atual para próxima versão.
+# Valores aceitos são:
+# - RollingUpdate: garante implantações "Zero Downtime".
+#
+# "spec.strategy.rollingUpdate.maxUnavailable"
+# Define a quantidade máxima permitida de Pods (réplicas) indisponíveis ao fazer uma 
+# atualização contínua, mantendo a aplicação acessível durante os deploys.
+#
+# "spec.strategy.rollingUpdate.maxSurge"
+# Define a quantidade máxima de Pods adicionados durante os deploys.
+#
+# "spec.template"
+# Define o modelo de Pod que a implantação utilizará para criar os novos Pods.
+#
+# "spec.template.spec.containers.imagePullPolicy"
+# Define a política para baixar a imagem Docker do repositório. Valores aceitos são:
+# - Always: indica que a imagem deve ser baixada a cada implantação
+#============================================================================================
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: todo-spring-boot
+  namespace: example
+  labels:
+    name: todo-spring-boot
+    instance: todo-spring-boot-BRANCH_NAME
+    version: "1.0.0"
+    component: microservice
+    part-of: analitico
+    managed-by: manifests
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  selector:
+    matchLabels:
+      app: todo-spring-boot
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: todo-spring-boot
+        tier: backend
+        environment: production
+        release: stable
+        language: java
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: '/actuator/prometheus'
+        prometheus.io/port: '8080'
+    spec:
+      containers:
+      - name: todo-spring-boot
+        image: todo-spring-boot:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+
+---
+#============================================================================================
+# SERVICE
+# Referência: https://kubernetes.io/docs/concepts/services-networking/service/
+#--------------------------------------------------------------------------------------------
+#
+# "kind"
+# Define o tipo do objeto configurado.
+#
+# "apiVersion"
+# Versão da API do Kubernetes usada para o objeto configurado.
+#
+# "spec.type"
+# Define como o serviço será exposto internamente/externamente. Valores aceitos são: NodePort,
+# LoadBalancer, ExternalName e ClusterIP (padrão).
+#
+# "spec.selector.app"
+# Propriedade utilizada como seletor dos Pods.
+#
+# "spec.ports.name"
+# Nome único atribuído para a porta. (opcional)
+#
+# "spec.ports.protocol"
+# Define o protocolo de comunicação com o serviço. Valores aceitos são: TCP, UDP e SCTP.
+#
+# "spec.ports.port"
+# Define a porta em que o serviço receberá as requisições HTTP.
+#
+# "spec.ports.targetPort"
+# Define a porta que receberá o encaminhamento das requisições HTTP.
+#============================================================================================
+kind: Service
+apiVersion: v1
+metadata:
+  name: todo-spring-boot
+  namespace: example
+  labels:
+    app: todo-spring-boot
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-spring-boot
+    tier: backend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: gateway-ingress
+  namespace: example
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  backend:
+    serviceName: default-http-backend
+    servicePort: 80
+  rules:
+  - host: services.local.com.br
+    http:
+      paths:
+      - path: /todo-spring-boot
+        backend:
+          serviceName: todo-spring-boot
+          servicePort: 8080

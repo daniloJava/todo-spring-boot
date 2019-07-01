@@ -1,0 +1,22 @@
+spring:
+  data:
+    elasticsearch:
+      cluster-name: ${ELASTICSEARCH_CLUSTER_NAME:docker-cluster}
+      cluster-nodes: ${ELASTICSEARCH_CLUSTER_NODES:localhost:9300}
+  jpa:
+    show-sql: ${DATABASE_JPA_SHOW_SQL:true}
+    hibernate:
+      ddl-auto: ${DATABASE_JPA_DDL_AUTO:create-drop}
+
+app:
+  datasource:
+    primary:
+      name: ${DATABASE_NAME:exampleDB}
+      url: ${DATABASE_URL:jdbc:postgresql://127.0.0.1:5432/${app.datasource.primary.name}}
+      username: ${DATABASE_USERNAME:postgres}
+      password: ${DATABASE_PASSWORD:postgres@123}
+    secondary:
+      name: ${DATABASE_SECONDARY_NAME:exampleDB}
+      url: ${DATABASE_SECONDARY_URL:jdbc:sqlserver://127.0.0.1:1433;databaseName=${app.datasource.secondary.name}}
+      username: ${DATABASE_SECONDARY_USERNAME:sa}
+      password: ${DATABASE_SECONDARY_PASSWORD:sqlserver@123}
